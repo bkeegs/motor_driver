@@ -1,0 +1,4 @@
+Circuit: * C:\Users\bkeegan\Desktop\tester_dev\rotom\Sim\H-bridge_sim.asc
+
+Fatal Error: Port(pin) count mismatch between the definition of subcircuit "p_60_l_var" and instance: "xm3:1"
+The instance has more connection terminals than the definition.
