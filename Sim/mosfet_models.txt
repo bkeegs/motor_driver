@@ -1,105 +1,63 @@
+*FDV304P at Temp. Electrical Model
+*-------------------------------------
+*.SUBCKT FDV304P 20 10 30 50
+.SUBCKT FDV304P 20 10 30
+*20=DRAIN 10=GATE 30=SOURCE 50=VTEMP
+*** Doesn't track temperature any more
+vtemp 50 0 27
+Rg 10 11x 1
+Rdu 12x 1 1u
+M1 2 1 4x 4x DMOS L=1u W=1u
+.MODEL DMOS PMOS(VTO=-0.7 KP=8.7E-1
++THETA=.25 VMAX=9.5E5 LEVEL=3)
+Cgs 1 5x 58p
+Rd 20 4 1.35E-1
+Dds 4 5x DDS
+.MODEL DDS D(M=3.45841E-1 VJ=7.40468E-1 CJO=58p)
+Dbody 20 5x DBODY
+.MODEL DBODY D(IS=2.92E-8 N=1.86497 RS=.006333 TT=110n)
+Ra 4 2 1.35E-1
+Rs 5x 5 0.5m
+Ls 5 30 0.5n
+M2 1 8 6 6 INTER
+E2 8 6 4 1 2
+.MODEL INTER PMOS(VTO=0 KP=10 LEVEL=1)
+Cgdmax 7 4 205p
+Rcgd 7 4 10meg
+Dgd 4 6 DGD
+Rdgd 4 6 10meg
+.MODEL DGD D(M=4.9413E-1 VJ=2.6406E-2 CJO=205p)
+M3 7 9 1 1 INTER
+E3 9 1 4 1 -2
+*ZX SECTION
+EOUT 4x 6x poly(2) (1x,0) (3x,0) 0 0 0 0 1
+FCOPY 0 3x VSENSE 1
+RIN 1x 0 1G
+VSENSE 6x 5x 0
+RREF 3x 0 10m
+*TEMP SECTION
+ED 101 0 VALUE {V(50,100)}
+VAMB 100 0 25
+EKP 1x 0 101 0 .3
+*VTO TEMP SECTION
+EVTO 102 0 101 0 .002
+EVT 11x 12x 102 0 1
+*DIODE THEMO BREAKDOWN SECTION
+EBL VB1 VB2 101 0 .08
+VBLK VB2 0 25
+D DB1 20 DBLK
+.MODEL DBLK D(IS=1E-14 CJO=.1p RS=.1)
+EDB 0 DB1 VB1 0 1
+.ENDS FDV304P
+*FDV304P (Rev.A) 3/3/03 **ST
 
-.SUBCKT P_60_l_var dd g s  PARAMS: Tj=27 a=2.32 dVth=0 dR=0 dgfs=0 Inn=3.5 Unn=10 Rmax=67m gmin=1 Rs=1m dC=0 heat=0
 
-.PARAM  kbq=85.8u    Tref=298      T0=273 
-.PARAM  nsub=5.4     N=1.5         Vth0= 2.1   dib=5m        auth = 1.75m
-.PARAM  c=0.65       nmu=1.5       ndi= 1.5    UBr = 70
-.PARAM  aubr=60m     UTnbr=0.05    lnIb=-8.3   beta=1.8      lnIsj = -19.5
-.PARAM  Rd=365m      ta=30n        td=30n      Rdi=40m  
-.PARAM  Cgs0=140p    Cds0=139p     Cox0=250p   U0=1.03       Vn=0.15
 
-.PARAM  Vmin=1.6     Vmax=2.6      gfmin=0.5   dCmax=0.33
 
-.PARAM  Vth={Vth0+(Vmax-Vth0)*limit(dVth,0,1)-(Vmin-Vth0)*limit(dVth,-1,0)}
-.PARAM  p1={(Unn-Inn*Rs-Vth)*beta*a}
-.PARAM  p2={(dib-c)*Inn*beta*a}
-.PARAM  Rlim={(p1+2*p2*Rmax-SQRT(p1**2+4*p2))/(2*p2)}
-.PARAM  dRd={Rd/a+if(dVth==0,limit(dR,0,1)*max(Rlim-Rd/a-Rs,0),0)}
-.PARAM  bm={c/((1/gmin-Rs)**2*Inn*a*(T0/Tref)**nmu)}
-.PARAM  bet={(beta+(beta-bm)*if(dR==0,if(dVth==0,limit(dgfs,-1,0),0),0))}
 
-.PARAM  dC1={1+dCmax*limit(dC,0,1)}
-.PARAM  dC2={1+1.5*dCmax*limit(dC,0,1)}
-
-.PARAM  Cgs={Cgs0*dC1}
-.PARAM  Cox={Cox0*dC2}
-.PARAM  Cds={Cds0*dC1}
-
-*MOS+Diode   
-.FUNC I0(Uds,Uee,ph,ps)  {if(Uee>ps,(Uee-c*min(Uds,Uee/(2*c)))*min(Uds,Uee/(2*c)),ph*(ps-ph)/c*exp((Uee-ps)/ph))}
-.FUNC Imos(Uds,Ugs,T,ph) {bet/((T/Tref)**n)*I0(Uds,Ugs-Vth+dib*Uds+auth*(T-Tref),ph,min(2*ph,ph+c*Uds))}
-.FUNC Iges(Uds,Ugs,T)    {a*sgn(Uds)*(Imos(abs(Uds),Ugs,T,nsub*kbq*T)+exp(min(lnIb+(Uds-Ubr-aubr*(T-Tref))/UTnbr,7)))}
-.FUNC Isjt(T)            {exp(min(lnIsj+(T/Tref-1)*1.12/(ndi*kbq*T),7))*T/Tref}
-.FUNC Idiode(Usd,T,Iss)  {exp(min(log(Iss)+Usd/(ndi*kbq*T),7))-Iss}
-
-E_Edg  d1 ox VALUE {-max(-V(d1,g),0)+2*Vn*SQRT(1+max(-V(d1,g),0)/Vn)}
-C_Cdg  ox g {Cox*a+5p}
-E_Eds  d1 edep VALUE {V(d1,s)+2*(SQRT(U0*max(U0-V(d1,s),0))-U0)}
-C_Cds  edep s {Cds*a}
-C_Cgs  g  s {Cgs*a+5p}                   
-
-G_G1 s d1 VALUE={Iges(V(s,d1),V(s,g),T0+limit(V(Tj),-200,999))+LIMIT(I(V_sense3),-1k,1k)}
-G_drain d1 d2 VALUE={V(d1,d2)/(dRd*((limit(V(Tj),-200,999)+T0)/Tref)**nmu)}
-V_sense d2 dd 0
-G_diode d3 s VALUE={a*Idiode(V(d3,s),T0+limit(V(Tj),-200,999),Isjt(T0+limit(V(Tj),-200,999)))}
-R_diode d3 d4 {Rdi/a}
-V_sense2 d2 d4 0
-
-C_C001    a   0 {ta*td/(ta+td)}
-R_R001    a   b 1
-V_sense3  b   c 0
-E_E001    c   0 VALUE {ta/td*I(V_sense2)}
-
-R1 g s 2G
-Rd01 d1 s   500Meg
-Rd02 d1 d2  1k
-
-G_TH 0 Tj VALUE = {heat*LIMIT(I(V_sense)*V(s,dd),0,100k)}
-
-.ENDS
-*$
-
-.SUBCKT BSS84P drain gate source PARAMS: Tj=23 Tcase=23 dVth=0 dRdson=0 dgfs=0 dC=0 dZth=0
-
-.PARAM Rs=75.39m    Rg=10        Rd=30m       Rm=1m
-.PARAM Inn=0.17     Unn=10       Rmax=8       gmin=71.59m
-.PARAM RRf=500m     Rrbond=489   Rtb=1k       g2=1000m
-.PARAM act=0.0915
-.PARAM Ls=2n        Ld=1n        Lg=2n
-.FUNC   Pb(I,dT,Rb)  {Rb/(2*Rtb)*(I-limit(dT/(max(I,1n)*Rb)+RRf*I*g2,0,I))**2}
-
-X1  d1 g s Tj P_60_l_var PARAMS: a={act} dVth={dVth} dR={dRdson} dgfs={dgfs} Inn={Inn} Unn={Unn} 
-                                        +Rmax={Rmax} gmin={gmin} Rs={Rs} dC={dC} heat=1
-Rg    g1     g    {Rg}   
-Lg    gate   g1   {Lg*if(dgfs==99,0,1)}
-Gs    s1     s    VALUE={V(s1,s)/(Rs*(1+(limit(V(Tj),-200,999)-25)*4m))}
-Rsa   s1     s    1Meg
-Ls    source s1   {Ls*if(dgfs==99,0,1)}
-Rda   d1     d2   {Rd}
-Ld    drain  d2   {Ld*if(dgfs==99,0,1)}
-Rsb   source s1    10
-Rga   gate   g1    10
-Rdb   drain  d2    10
-
-G_TH  0    Tb  VALUE =  {Pb(abs(I(Ls)),V(Tj,Tcase),Rrbond*(1+(limit((V(Tb)+V(Tj))/2,-200,999)-25)*4m))}
-Cthb  Tb      0               944.25n
-Rthb  Tb      Tj              {Rtb} 
-Rth1  Tj      t1              {203.14m+limit(dZth,0,1)*75.18m}
-Rth2  t1      t2              {2.8+limit(dZth,0,1)*1.04}
-Rth3  t2      t3              {5.13+limit(dZth,0,1)*5.02}
-Rth4  t3      t4              {8.9+limit(dZth,0,1)*19.37}
-Rth5  t4      Tcase           {49.57+limit(dZth,0,1)*107.89}
-Cth1  Tj      0               634n
-Cth2  t1      0               782n
-Cth3  t2      0               1.97u
-Cth4  t3      0               30.6u
-Cth5  t4      0               646u
-Cth6  Tcase   0               1p
-
-.ENDS
 
 * MODELLING FOR STB16NF06LT4
- 
+
 .SUBCKT STB16NF06LT4 1 2 3
 LG 2 4  7.5E-09
 LS 12 3 7.5E-09
@@ -123,7 +81,7 @@ D1  100 101  DID
 D2  102 100  DID
 R1  101 0  1MEG
 R2  102 0  1MEG
- 
+
 .MODEL MOS NMOS
 + LEVEL = 3
 + VTO   = 1.922
@@ -132,7 +90,7 @@ R2  102 0  1MEG
 + JS    = 0
 + THETA = 0.101E-01
 + KP    = 16.247
- 
+
 .MODEL DGD D
 + IS    = 0.1E-12
 + CJO   = 0.104E-10
@@ -238,25 +196,10 @@ E12    13   0  TABLE {V(12)}
 .MODEL MINT NMOS(Vto=1.975 Kp=1.0 Nfs=300000000000 Eta=1000
 + Level=3 L=1e-4 W=1e-4 Gamma=0 Phi=0.6 Is=1e-24
 + Js=0 Pb=0.8  Cj=0 Cjsw=0 Cgso=0 Cgdo=0 Cgbo=0
-+ Tox=1e-07 Xj=0  
++ Tox=1e-07 Xj=0
 + U0=600 Vmax=1000)
 
 .MODEL DBD D(Bv=80.00 Ibv=1.00E-05 Rs=1E-6 Is=5e-15
 + N=1 M=0.5 VJ=0.5 Fc=0.5 Cjo=9.64e-12 Tt=3e-08)
 
 .ENDS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
