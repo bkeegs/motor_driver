@@ -1,4 +1,4 @@
-update=4/2/2017 5:06:59 PM
+update=4/5/2017 7:50:10 AM
 version=1
 last_client=kicad
 [pcbnew]
@@ -27,7 +27,7 @@ NetIExt=net
 version=1
 [eeschema]
 version=1
-LibDir=../../KiCad_libraries
+LibDir=../../kicad_library_bkeegs
 [eeschema/libraries]
 LibName1=motor_driver-rescue
 LibName2=C:/Users/bkeegs/Desktop/repos/KiCad_libraries/my_library
@@ -60,3 +60,4 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
+LibName32=my_library
